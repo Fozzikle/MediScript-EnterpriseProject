@@ -1,0 +1,12 @@
+MediScript End-User License Agreement (EULA)
+This End-User License Agreement (“Agreement”) is a legal agreement between you and MediScript Pty Ltd regarding your use of the MediScript software application.
+
+License Grant: You are granted a non-exclusive, non-transferable, revocable license to install and use the MediScript application on devices that you own or control, for personal or professional purposes. This license is granted free of charge.
+
+Prohibited Uses: You may not modify, reverse engineer, distribute, resell, rent, or sublicense the App or any portion thereof. The App is provided solely for lawful use. Use in breach of privacy or surveillance laws is prohibited.
+
+Open Source Components: MediScript includes third-party open-source components (e.g., Vosk, PySimpleGUI) licensed under their respective terms, which remain in full effect.
+
+Ownership: All intellectual property rights in the MediScript software and documentation are owned by MediScript Pty Ltd or its licensors.
+
+Termination: This Agreement is effective until terminated. You may terminate it at any time by uninstalling the software. MediScript Pty Ltd may terminate this Agreement at any time if you breach any term.
