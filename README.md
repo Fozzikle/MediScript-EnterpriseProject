@@ -1,3 +1,5 @@
+# Enterprise Computing Major Work
+
 Note: Planed rework in the near future.
 
 After shadowing an orthopaedic surgeon, I identified the significant amount of time spent documenting patient consultations between appointments. This inspired me to independently design and develop MediScript, a lightweight, fully offline medical transcription and patient management system designed to streamline clinical documentation while maintaining local control over sensitive patient data.
