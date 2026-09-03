@@ -1,0 +1,12 @@
+MediScript Medical Disclaimer
+MediScript is a locally operated speech-to-text tool designed to assist with transcribing audio from medical consultations. It is not a certified medical device, nor is it registered with the Therapeutic Goods Administration (TGA) or any international health regulator.
+
+The application is currently in prototype form and does not guarantee transcription accuracy. Transcripts may include errors, omissions, or misinterpretations. MediScript is not a substitute for professional medical judgment, transcription services, or record-keeping requirements under law.
+
+Users are responsible for:
+
+-Reviewing and correcting all output before clinical use;
+-Complying with relevant laws regarding the handling of patient information;
+-Ensuring patient consent for any recordings or transcriptions performed.
+
+Under no circumstance shall MediScript Pty Ltd be liable for any harm, injury, or damage resulting from reliance on the application or its output.
