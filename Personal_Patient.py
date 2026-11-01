@@ -1,16 +1,15 @@
-# Imports
 import FreeSimpleGUI as sg
 
 
-def Personal_Patient_window(exisitng_data = None):
+def personal_patient_window(existing_data = None):
 
-    name_default = exisitng_data.get('name', '') if exisitng_data else ''
-    gender_defualt = exisitng_data.get('gender', '') if exisitng_data else ''
+    name_default = existing_data.get('name', '') if existing_data else ''
+    gender_default = existing_data.get('gender', '') if existing_data else ''
     dob_day = dob_month = dob_year = ''
 
-    if exisitng_data and 'DOB' in exisitng_data:
+    if existing_data and 'DOB' in existing_data:
         try:
-            dob_parts = exisitng_data['DOB'].split('/')
+            dob_parts = existing_data['DOB'].split('/')
             dob_day = int(dob_parts[0])
             dob_month = (dob_parts[1])
             dob_year = int(dob_parts[2])
@@ -32,12 +31,12 @@ def Personal_Patient_window(exisitng_data = None):
     # Patient Gender
     patient_gender = [
         [sg.Text("Patient's Gender", font=('Segoe UI', 12, 'bold'), text_color='#2D2D2D', background_color='#F7F9FB')],
-        [sg.Combo(["Male", "Female", "Other"], default_value=gender_defualt, size=(7, 1), readonly=True,
+        [sg.Combo(["Male", "Female", "Other"], default_value=gender_default, size=(7, 1), readonly=True,
                   background_color='#F7F9FB', key="-Gender-")]
     ]
 
     # Patient DOB
-    patient_DOB = [
+    patient_dob = [
         [sg.Text("Patient's Date of Birth", font=('Segoe UI', 12, 'bold'), text_color='#2D2D2D',
                  background_color='#F7F9FB')],
         [
@@ -72,7 +71,7 @@ def Personal_Patient_window(exisitng_data = None):
     layout = [
         [sg.Column([title], background_color='#F7F9FB')],
         [sg.Column(patient_name, background_color='#F7F9FB')],
-        [sg.Column(patient_DOB, background_color='#F7F9FB')],
+        [sg.Column(patient_dob, background_color='#F7F9FB')],
         [sg.Column(patient_gender, background_color='#F7F9FB')],
         [sg.Column(patient_insurance, background_color='#F7F9FB')],
         [button]
@@ -82,7 +81,7 @@ def Personal_Patient_window(exisitng_data = None):
     window = sg.Window('Patient Personal Information', layout, use_default_focus=False, resizable=True,
                        background_color='#F7F9FB',size=(400, 600))
 
-    patient_personal_data = exisitng_data.copy() if exisitng_data else {}
+    patient_personal_data = existing_data.copy() if existing_data else {}
 
     # Event Loop
     while True:

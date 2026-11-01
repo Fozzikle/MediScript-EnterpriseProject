@@ -1,6 +1,5 @@
 import wave
 import pyaudio
-import soundfile as sf
 from datetime import datetime
 import os
 

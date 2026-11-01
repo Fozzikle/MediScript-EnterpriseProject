@@ -1,4 +1,3 @@
-# Imports
 import FreeSimpleGUI as sg
 import os
 import new_patient_setup

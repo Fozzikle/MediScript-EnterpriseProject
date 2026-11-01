@@ -73,7 +73,7 @@ def new_patient_window(existing_data=None):
         if event in (sg.WIN_CLOSED, 'Exit'):
             break
         elif event == '-personal-':
-            patient_data = Personal_Patient.Personal_Patient_window(patient_data or existing_data)
+            patient_data = Personal_Patient.personal_patient_window(patient_data or existing_data)
         elif event == '-history-':
             sg.popup('This window has not been implemented by your organisation! Skip for now')
         elif event == '-clinical-':

@@ -1,4 +1,3 @@
-# imports
 import shutil
 import FreeSimpleGUI as sg
 import os
