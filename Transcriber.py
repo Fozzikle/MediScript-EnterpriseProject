@@ -1,5 +1,5 @@
 from vosk import Model, KaldiRecognizer
-import pyaudio
+import sounddevice as sd
 import json
 import os
 from datetime import datetime
@@ -12,15 +12,29 @@ from record_raw_audio import AudioRecording
 
 
 # backend stuff
+# TODO: Improve transcription speed by parallel to transcriptions, clipping and saving them in 5 second intervals for
+#  real time transcriptions
 def transcriber(end_transcriber, transcription_folder):
+    """
+    The backend engine that uses vosk to transcribe the patient consultation. Produces both the raw file and the cleaned
+    transcription file (grammar/puncutation, assignment, etc).
+    :param end_transcriber:
+    :param transcription_folder:
+    :return: The cleaned and raw file of the transcription of the consultation
+    """
     # setup
     model = Model(
-        r"C:\Users\mathi\PycharmProjects\Enterprise_Computing_Major_Work_Transcriber\vosk-model-small-en-us-0.15\vosk-model-small-en-us-0.15")
+        r"C:\Users\mathi\PycharmProjects\Enterprise_Computing_Major_Work_Transcriber\vosk-model-small-en-us-0.15\vosk-model-small-en-us-0.15"
+    )
     recognizer = KaldiRecognizer(model, 16000)
 
-    mic = pyaudio.PyAudio()
-    stream = mic.open(format=pyaudio.paInt16, channels=1, rate=16000, input=True, frames_per_buffer=8192)
-    stream.start_stream()
+    stream = sd.RawInputStream(
+        samplerate=16000,
+        blocksize=8192,
+        channels=1,
+        dtype='int16'
+    )
+    stream.start()
 
     # Creating place to store the transcription
     transcript = []
@@ -28,34 +42,36 @@ def transcriber(end_transcriber, transcription_folder):
     try:
         # Loop for when the transcriber is active
         while True:
-            data = stream.read(4096, exception_on_overflow=True)
+            data, overflowed = stream.read(4096)
 
             audio_data = np.frombuffer(data, dtype=np.int16)
             max_val = np.max(np.abs(audio_data))
+
             if max_val > 0:
                 gain = int(0.75 * 32767 / max_val)
-                audio_data = np.clip(audio_data * gain, -32768, 32767).astype(np.int16)
-            normalized_data = audio_data.tobytes()
+                audio_data = np.clip(
+                    audio_data * gain,
+                    -32768,
+                    32767
+                ).astype(np.int16)
 
-            if recognizer.AcceptWaveform(normalized_data):
-                result = json.loads(recognizer.Result())  # reformat output
+            if recognizer.AcceptWaveform(audio_data.tobytes()):
+                result = json.loads(recognizer.Result())
                 text = result.get("text", "")
+
                 if text:
-                    transcript.append(text)  # Store transcription
+                    transcript.append(text)
 
             # ending transcription
             if end_transcriber():
                 break
 
     finally:
-        # ensuring tasks close correctly
-        stream.stop_stream()
+        stream.stop()
         stream.close()
-        mic.terminate()
-
-        # Ensuring that the whole transcription is saved (had bug where last sentence didn't save)
         final_result = json.loads(recognizer.FinalResult())
         final_text = final_result.get("text", "")
+
         if final_text:
             transcript.append(final_text)
 
@@ -66,31 +82,48 @@ def transcriber(end_transcriber, transcription_folder):
         # Saving the transcription to .txt file and setting save location
         os.makedirs(transcription_folder, exist_ok=True)
 
-        filename_raw = os.path.join(transcription_folder,
-                                    f"transcription_raw_{datetime.now().strftime('%d%m%y_%H%M%S')}.txt")
+        filename_raw = os.path.join(
+            transcription_folder,
+            f"transcription_raw_{datetime.now().strftime('%d%m%y_%H%M%S')}.txt"
+        )
+
         with open(filename_raw, "w") as f:
             f.write("\n".join(transcript))
 
-        filename_cleaned = os.path.join(transcription_folder,
-                                        f"transcription_cleaned_{datetime.now().strftime('%d%m%y_%H%M%S')}.txt")
-        with open(filename_cleaned, "w") as f:
-            f.write("\n".join(f"{speaker}: {sentence}" for speaker, sentence in cleaned_transcript))
+        filename_cleaned = os.path.join(
+            transcription_folder,
+            f"transcription_cleaned_{datetime.now().strftime('%d%m%y_%H%M%S')}.txt"
+        )
 
-        return filename_raw, filename_cleaned
+        with open(filename_cleaned, "w") as f:
+            f.write(
+                "\n".join(
+                    f"{speaker}: {sentence}"
+                    for speaker, sentence in cleaned_transcript
+                )
+            )
+
+    return filename_raw, filename_cleaned
 
 
 # Frontend Stuff
-
-# making a loading bar (show it is working)
 def loading(text_element, stop_flag):
+    """
+    Transcribing animation, giving a visual representation that the transcriber is currently listening.
+    :param text_element: Used for sg to know to animate this.
+    :param stop_flag: When to stop the animation (stop_flag=true).
+    """
     full_text = "Transcribing..."
+
     while not stop_flag[0]:
         for i in range(0, len(full_text) + 1):
             if stop_flag[0]:
                 break
+
             text_element.update(full_text[:i])
-            time.sleep(0.1)  # speed of loading
-        time.sleep(0.35)  # time before re-looping
+            time.sleep(0.1)
+
+        time.sleep(0.35)
 
 
 # Creating transcriber window
@@ -102,31 +135,73 @@ def transcription_window(transcription_folder):
         return stop_flag[0]
 
     def threaded_transcriber():
-        filename_raw, filename_cleaned = transcriber(end_transcriber, transcription_folder)
+        filename_raw, filename_cleaned = transcriber(
+            end_transcriber,
+            transcription_folder
+        )
         file_output[0] = (filename_raw, filename_cleaned)
 
     # Transcriber thread
-    thread = threading.Thread(target=threaded_transcriber, daemon=True)
+    thread = threading.Thread(
+        target=threaded_transcriber,
+        daemon=True
+    )
     thread.start()
 
     # Raw audio thread
     audio_logger = AudioRecording(transcription_folder)
-    thread_audio = threading.Thread(target=audio_logger.start_recording, daemon=True)
+
+    thread_audio = threading.Thread(
+        target=audio_logger.start_recording,
+        daemon=True
+    )
     thread_audio.start()
 
     layout = [
-        [sg.Text("", key="-Animate-", font=('Segoe UI', 14, 'bold'), text_color='#2A7FA2', size=(20, 1),
-                 background_color='#F7F9FB')],
-        [sg.Column([[sg.Button("Stop", size=(15, 2), button_color=('white', '#2A7FA2'),
-                               font=('Segoe UI', 12, 'bold'))]], background_color='#F7F9FB', justification='right')]
+        [
+            sg.Text(
+                "",
+                key="-Animate-",
+                font=('Segoe UI', 14, 'bold'),
+                text_color='#2A7FA2',
+                size=(20, 1),
+                background_color='#F7F9FB'
+            )
+        ],
+        [
+            sg.Column(
+                [[
+                    sg.Button(
+                        "Stop",
+                        size=(15, 2),
+                        button_color=('white', '#2A7FA2'),
+                        font=('Segoe UI', 12, 'bold')
+                    )
+                ]],
+                background_color='#F7F9FB',
+                justification='right'
+            )
+        ]
     ]
 
-    window = sg.Window("Transcribing", layout, modal=True, finalize=True, size=(300, 100), background_color='#F7F9FB')
+    window = sg.Window(
+        "Transcribing",
+        layout,
+        modal=True,
+        finalize=True,
+        size=(300, 100),
+        background_color='#F7F9FB'
+    )
 
-    threading.Thread(target=loading, args=(window["-Animate-"], stop_flag), daemon=True).start()
+    threading.Thread(
+        target=loading,
+        args=(window["-Animate-"], stop_flag),
+        daemon=True
+    ).start()
 
     while True:
-        event, _ = window.read(timeout=100)  # timeout ensures the animation continuously updates
+        event, _ = window.read(timeout=100)
+
         if event == sg.WIN_CLOSED or event == "Stop":
             stop_flag[0] = True
             break
@@ -135,6 +210,7 @@ def transcription_window(transcription_folder):
 
     # ending threads
     audio_logger.end_recording()
+
     thread_audio.join()
     thread.join()
 

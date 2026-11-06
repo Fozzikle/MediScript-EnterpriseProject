@@ -6,3 +6,6 @@ pyspellchecker==0.9.1
 deepmultilingualpunctuation==1.0.1
 pillow==13.0.0
 vosk==0.3.45
+transformers==4.57.6
+tokenizers==0.22.2
+huggingface-hub==0.36.2
