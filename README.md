@@ -1,4 +1,4 @@
-# Enterprise Computing Major Work
+# About MediScript
 
 Note: Planed rework in the near future.
 
