@@ -12,7 +12,7 @@ A significant technical challenge was enabling continuous near real-time transcr
 
 
 # About Rework 
-Rework duration: eta mid november to end of januar 
+Rework duration: eta mid November to end of January 
 
 - Improving and optimising turn-base logic to improve accuracy
 - Creating a custom summariser (to help improve my understanding of ML and linear algebra)
